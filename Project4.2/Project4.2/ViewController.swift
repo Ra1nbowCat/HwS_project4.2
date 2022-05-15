@@ -25,12 +25,14 @@ class ViewController: UIViewController, WKNavigationDelegate {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Open", style: .plain, target: self, action: #selector(openTapped))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let refresh = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView.reload))
+        let backButton = UIBarButtonItem(barButtonSystemItem: .reply, target: nil, action: #selector(webView.goBack))
+        let forwardButton = UIBarButtonItem(barButtonSystemItem: .fastForward, target: nil, action: #selector(webView.goForward))
         
         progressView = UIProgressView(progressViewStyle: .default)
         progressView.sizeToFit()
         let progressButton = UIBarButtonItem(customView: progressView)
         
-        toolbarItems = [progressButton, spacer, refresh]
+        toolbarItems = [backButton, spacer, forwardButton, spacer, progressButton, spacer, refresh]
         navigationController?.isToolbarHidden = false
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
@@ -52,9 +54,20 @@ class ViewController: UIViewController, WKNavigationDelegate {
         present(ac, animated: true)
     }
     
+    func cancelAlert() {
+        let ac = UIAlertController(title: "This site isn't allowed, sorry", message: nil, preferredStyle: .actionSheet)
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        ac.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        present(ac, animated: true)
+    }
+    
     func openPage(action: UIAlertAction) {
         guard let actionTitle = action.title else {return}
         guard let url = URL(string: "https://" + actionTitle) else {return}
+        guard url != URL(string: "https://vk.com") else {
+            cancelAlert()
+            return
+        }
         webView.load(URLRequest(url: url))
     }
     
